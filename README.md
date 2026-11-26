@@ -1,4 +1,8 @@
-# Smart Parking Lot Rate Calculator
+# smart-parking-lot
+
+Smart parking Lot Assignment
+
+## Rate Calculator Architecture
 
 This project currently contains the architecture plan for the rate calculator described in the supplied assignment. It does not yet contain an implementation.
 
