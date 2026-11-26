@@ -2,7 +2,6 @@ package com.smartparkinglot.domain.pricing;
 
 import com.smartparkinglot.domain.Money;
 import com.smartparkinglot.domain.ParkingInterval;
-import com.smartparkinglot.domain.VehicleClass;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
