@@ -1,34 +1,61 @@
-# smart-parking-lot
+# Smart Parking Lot
 
-Smart parking Lot Assignment
+A Java 17 parking-lot domain and application module that assigns parking spots
+and calculates the lowest valid fare across Standard Hourly, Early Bird, and
+Night Owl pricing policies.
 
-## Rate Calculator Architecture
+## Requirements
 
-This project currently contains the architecture plan for the rate calculator described in the supplied assignment. It does not yet contain an implementation.
+- JDK 17 or newer.
+- Maven Wrapper is included; the first run may download the configured Maven
+  distribution.
 
-## Documentation
+## Build and test
 
-- [Architecture plan](architecture-plan.md) — proposed design, domain model, behavior, testing, performance, and security.
-- [AI interaction history](ai-chat-history.md) — prompts, specification text, and clarification decisions recorded for this work.
+Run the complete test suite:
 
-## Confirmed assumptions and decisions
+```sh
+./mvnw clean test
+```
 
-- **Facility clock:** Each facility has an explicitly configured IANA time zone. Entry and exit are precise instants; weekday, holiday, and pricing-window checks use the facility's local calendar.
-- **Holidays:** A configurable facility holiday calendar determines which otherwise-weekday dates are excluded from weekday pricing. The owner and update process for this calendar remain to be decided before production.
-- **Unknown loyalty tier:** Missing or unrecognized loyalty tier receives no discount (the undiscounted rate).
-- **Currency:** USD only. Use exact decimal arithmetic and round the selected final fare to cents using half-up rounding; do not round intermediate candidate calculations.
-- **Policy selection:** Evaluate every applicable policy and charge the minimum valid fare. A stay longer than 24 hours is eligible only for Standard Hourly.
-- **Exact fare ties:** Return all policies tied at the lowest exact fare in the quote; they represent the same charge.
-- **Night Owl entry cutoff:** Accept entry from 18:00 up to, but not including, the next local midnight.
-- **Scope:** This plan covers the rate-calculation domain and its local application boundary, not payment processing, a network API, database, or a full parking-operations platform.
-- **Technology:** Follow the assignment constraint: use a platform-agnostic language and standard library only; do not introduce a heavy framework or database. The implementation language is not selected in this plan.
+On Windows, run:
 
-## Trade-offs and alternatives
+```bat
+mvnw.cmd clean test
+```
 
-- A small, in-process calculator with explicit policy objects is preferred over a service/distributed architecture: there are only three policies, and the assignment excludes heavy frameworks and databases.
-- Holiday rules and facility time zone are dependencies supplied to the pricing domain, rather than global constants. A third-party holiday service is not assumed; it would add availability and reproducibility concerns.
-- Decimal or rational arithmetic is preferred over binary floating point for fare calculations. Rounding only the final selected fare avoids order-dependent intermediate rounding.
-- The calculator should return a quote containing its selected policy and calculation details, rather than only a number, to support explanation and audit without coupling the domain to logging or payment.
-- The initial design favors straightforward hourly evaluation. If measured workloads include exceptionally long stays, optimize peak-block counting without changing the pricing contract; do not add speculative caching or persistence.
+To package the project:
 
-See the architecture plan for open decisions that need confirmation before a production deployment.
+```sh
+./mvnw package
+```
+
+The project has no standalone server, command-line UI, database, or payment
+processor. The application use cases are exposed through Java classes.
+
+## Project structure
+
+- `com.smartparkinglot.domain` — exact-cent money, vehicle and loyalty values,
+  facility/level/spot/ticket state, and validated parking intervals.
+- `com.smartparkinglot.domain.pricing` — pricing policies, holiday calendar,
+  policy quotes, and best-fare comparison.
+- `com.smartparkinglot.application` — entry, exit quote, and exit completion
+  operations with an in-memory ticket store.
+- `src/test/java` — JUnit Jupiter tests for domain values, pricing rules,
+  best-fare selection, and parking operations.
+
+## Operational rules and limitations
+
+- Compact spots fit Motorcycles and Cars; Large spots fit Buses.
+- Entry selects the first available compatible spot in facility order and
+  rejects entry if none is available.
+- Exit quoting does not alter ticket or spot state. Exit completion closes the
+  ticket and releases its assigned spot.
+- The facility time zone and holiday calendar are explicit configuration.
+  Pricing uses the facility's local time for date and window rules, and elapsed
+  time for hourly blocks across daylight-saving changes.
+- The federal holiday calendar supports configured years and observed dates;
+  its current-year factory accepts an injected clock for deterministic setup.
+- Ticket and spot state is held in memory and is lost when the process
+  restarts. The design models one facility and does not include durability,
+  concurrency across processes, payment processing, REST, or a GUI.

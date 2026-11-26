@@ -1,136 +1,255 @@
-# AI Interaction History
+# AI Chat History
 
-This file records the prompts, supplied assignment specifications, and decisions used to produce the architecture plan. It is intentionally separate from `README.md`, as requested. It records this planning conversation; future project conversations must be appended if the submission is to continue representing the full chat history.
+This log records the prompts, clarifications, and assistant outputs used for
+the architecture-planning work. It is being updated as the work progresses.
+The attached PDF text is not duplicated here; the source documents are
+`Assignment_Instructions.pdf` and `The_Smart_Parking_Lot_v2.pdf`.
 
-## User request
+## 2026-11-26 — Initial request and source documents
 
-> [Assignment_Instructions.pdf](file:///home/shyamsrk/Assignment_Instructions.pdf) [The_Smart_Parking_Lot_v2.pdf](file:///home/shyamsrk/The_Smart_Parking_Lot_v2.pdf) Generate a Software Architecture plan based on the attached specification documents. The plan should be covering tests, system design, architecture, domain objects, performance, and security. Always ask for a confirmation on ambiguity and where a decision is needed. Let's go step by step and stick to the following points:
-> 1. Full chat history checked into the project
-> 2. Chat history in a file separate from `README.md`
-> 3. GitHub publication to a new public repository
-> Chat history in a separate file: `ai-chat-history.md`
-> Notify if context utilization reaches 60%.
+### User
 
-## Supplied assignment instructions (parsed text)
+> Give me a software architecture plan as an architect based on the attached
+> specification documents. This should include specification, design, domain
+> objects, and tests. Before proceeding give me a plan and ask questions; do
+> not assume anything or explicitly call out assumptions to get clarification.
+> Go step by step instead of one-shot generation.
 
-**Code Assignment: Instructions**
+### Documents provided
 
-Core Philosophy: At Sahaj, design, thinking process, and engineering judgment are prioritized over mere functionality. The evaluation is about reasoning, especially in a modern AI-assisted context; GUI or CLI presentation skills are not evaluated.
+- `Assignment_Instructions.pdf`: emphasizes domain modelling, sensible SOLID,
+  KISS/YAGNI, maintainability, tests and validation, standard-library-only
+  implementation without heavy frameworks/REST/DBs, assumptions and trade-off
+  documentation, and AI interaction history.
+- `The_Smart_Parking_Lot_v2.pdf`: specifies Motorcycle/Car/Bus multipliers,
+  Standard Hourly progressive rates and weekday peak windows, Early Bird and
+  Night Owl discounted flat rates, minimum-valid-fare selection, and exclusion
+  of both specials for stays over 24 hours.
 
-### Evaluation criteria and design expectations
+### Assistant
 
-Code should be readable, maintainable, robust, and verified.
+> I’ve reviewed both PDFs. I’ll proceed in stages rather than generate a
+> one-shot plan: (1) resolve specification ambiguities and confirm deliverable
+> scope, (2) produce a traceable functional/non-functional specification,
+> (3) propose the domain model and architecture with key decisions/trade-offs,
+> then (4) outline test scenarios and review the plan with you before moving to
+> any later stage. Before Stage 1, please clarify these points; I’ll explicitly
+> label anything that remains undecided rather than silently assume it.
 
-- **Domain Modelling:** Clearly separate behavior from state. Encapsulate state properly and ensure objects reflect the problem domain.
-- **Design Principles:** Apply SOLID sensibly. Use KISS and YAGNI pragmatically to avoid unnecessary abstractions.
-- **Simplicity:** Prefer clear, simple designs over clever ones. Make conscious, explicit trade-offs.
-- **Code Quality:** Refactor for clarity. Make intent obvious and code easy to extend.
+### User clarifications
 
-### Testing and confidence
+- Deliverable: save Markdown files and pause after each stage.
+- Early Bird and Night Owl: weekdays only; exclude public holidays.
+- Holiday calendar: configurable, current year as default, US holidays.
+- Vehicle multipliers: apply to all rates.
+- Loyalty: no tier means no discount; unknown tier is invalid.
+- Rounding: round each hourly segment to nearest cent, half-up.
 
-Confidence in correctness is mandatory.
+### Assistant follow-up clarification
 
-- Unit tests are strongly encouraged wherever reasonable.
-- TDD is appreciated but not mandatory.
-- If tests are omitted, explain how the solution was validated.
+> I’ll treat the holiday calendar as configurable with the current year as the
+> default, apply specials on weekdays only excluding holidays, apply vehicle
+> multipliers to all policies, give an absent loyalty tier no discount, reject
+> an unknown tier, and round each standard hourly segment half-up to cents.
+> Please clarify the US holiday calendar basis, rounding for discounted flat
+> specials, and whether an unknown tier rejects billing or follows a separate
+> customer-data error path.
 
-### Technology constraints
+### User clarifications
 
-No heavy frameworks (examples: Spring Boot, Django), REST APIs, or databases. Use platform-agnostic languages and standard libraries only.
+- US federal holidays.
+- Round a flat special's final total to nearest cent, half-up.
+- Reject billing with a validation error for an unknown loyalty tier.
 
-### AI-assisted coding policy and required documentation
+## Stage 1 — Specification
 
-AI usage is encouraged, but judgment, validation, and ownership are evaluated. Transparency is mandatory.
+### Assistant plan
 
-1. **Assumptions (`README.md`):** Document assumptions, design decisions, trade-offs, and alternatives considered.
-2. **AI interaction history:** Provide the full chat history or prompts used, for example `ai-chat-history.txt`.
-3. **Reproducible setup:** If using complex AI workflows (agents, for example), include a reproducible setup. Possible contents include markdown commands, skill/agent definitions, and orchestration plans.
+> Stage 1 is the traceable specification. It records confirmed rules and lists
+> remaining decisions as open questions instead of selecting defaults. I will
+> pause for review before designing the architecture.
 
-## Supplied parking-lot specification (parsed text)
+### Assistant output
 
-**The Smart Parking Lot Rate Calculator**
+Created [`01-specification.md`](./01-specification.md), covering scope,
+pricing inputs/outputs, the vehicle multipliers, all three policies, loyalty,
+best-fare logic, technology constraints, user-confirmed decisions, and open
+questions about Night Owl date eligibility, holiday observance and year
+boundaries, time zone/DST, invalid session data, result details/ties, parking
+operations scope, and programming language.
 
-### Scenario
+### Assistant review request
 
-Design the billing engine for a smart, multi-level parking complex. It serves different vehicle types and prices dynamically based on time of day, day of week, and duration. At exit, a driver inserts a ticket and the system calculates the final fee. Multiple policies can apply to one stay; the system must evaluate valid fares and charge the lowest one.
+> Stage 1 is drafted in `01-specification.md`. Please review it and clarify the
+> open points below. If you prefer, answer “leave open” for any item; I’ll carry
+> it explicitly as unresolved into later stages and pause before designing
+> around it.
 
-### Domain and pricing basis
+The review questions asked for confirmation/corrections and rules for: whether
+both Night Owl dates must be eligible weekdays, federal holiday observance and
+year-crossing sessions, time zone and DST block behavior, invalid ticket and
+timestamp handling, result breakdowns and equal-price ties, parking operations
+scope, and language constraints. The first clarification request was
+interrupted; the same questions were subsequently asked again and answered.
 
-- Vehicle classes: Motorcycle, Car, Bus.
-- Spots accommodate different vehicles (examples: Compact for Motorcycles/Cars, Large for Buses).
-- Tickets are issued on entry and carry a precise entry timestamp.
-- Base rates are relative to the Car rate; multipliers are Motorcycle 0.8x, Car 1.0x, Bus 2.0x.
-- Currency is USD only; no conversion is required.
+### User follow-up and answers
 
-### Pricing policies
+> Re run the previous skipped questions.
 
-Weekdays are Monday through Friday, excluding public holidays. Policies 2 and 3 share time-window validation and loyalty-discount logic.
+The user asked to see the specification and answered the review questions:
 
-1. **Standard Hourly Rate with Peak Hour Surcharge**
-   - Car base: $5.00 for the initial hour, $3.00 for the second hour, and $2.00 for every later hour.
-   - On weekdays, each hour overlapping either peak window (07:00–10:00 or 16:00–19:00) gets a 1.5x multiplier for that entire hourly segment.
-   - Any positive partial overlap makes a segment a peak hour. Example: 06:30–07:30 incurs the peak multiplier.
-   - Round total parking duration upward to a full hour. Blocks start at entry (floating blocks). Peak starts are inclusive, ends exclusive.
-   - Given example: weekday Car, 06:30 entry, 08:30 exit. Block 1 is $5 × 1.5 = $7.50; block 2 is $3 × 1.5 = $4.50; total $12.00.
-2. **Early Bird Special**
-   - Entry [06:00, 09:00), exit [15:30, 19:00), on the same calendar day.
-   - Car base fee $15.00.
-   - Loyalty discounts: Silver 10%, Gold 20%, Platinum 30%.
-3. **Night Owl Special**
-   - Entry 18:00 through the end of the calendar day, exit [05:00, 10:00) on the next consecutive calendar day.
-   - Car base fee $8.00.
-   - Same loyalty discount schedule as Early Bird.
+- Night Owl requires both entry and exit dates to be eligible weekdays.
+- Use officially observed US federal holidays and resolve each local date
+  against its calendar year.
+- Time zone and elapsed-time versus wall-clock DST behavior are unspecified.
+- Reject unknown tickets, missing timestamps, exit-before-entry, and equal
+  entry/exit timestamps with validation errors.
+- Return a detailed policy comparison/breakdown and require a deterministic
+  policy tie-break.
+- Include parking operations in scope, and keep the architecture
+  language-neutral.
 
-### Conflict resolution and extended stays
+Updated [`01-specification.md`](./01-specification.md) with the clarified
+requirements. The user then approved Stage 1 and clarified:
 
-- Evaluate all valid and applicable policies (Standard Hourly, Early Bird, Night Owl), then select the minimum fare.
-- For stays longer than 24 hours, Early Bird and Night Owl are invalid; evaluate Standard Hourly exclusively.
+- Use the facility's local time zone and elapsed time across daylight-saving
+  transitions.
+- Resolve equal minimum fees in this order: Early Bird, Night Owl, then
+  Standard Hourly.
 
-## Clarification exchange
+The exact facility time-zone identifier remains deployment configuration.
+The user approved in-memory state for the assignment and directed the
+architecture to take the easiest approach for parking operations. The
+architecture therefore records explicit working rules (Compact for
+Motorcycles/Cars, Large for Buses, stable first-available compatible spot,
+reject when full, one facility, and no payment processing) for review.
 
-**Assistant:** I reviewed both specifications and found the workspace is currently empty. Before drafting the plan, I need your decisions on several underspecified requirements. We can then proceed in steps: (1) confirm assumptions and draft the architecture plan, (2) create the separate full chat-history file, and (3) publish only after you confirm the repository details. I can estimate context usage, but I cannot read an exact utilization percentage; I’ll give a best-effort warning near 60%.
+### Stage 2 — Architecture and domain design
 
-**Assistant's clarification form:**
+The user approved Stage 2, accepted in-memory state for the assignment with
+restart data loss documented, and requested the easiest operational approach.
 
-- Facility time zone: recommended explicit IANA zone; user selected “Unspecified; make configurable per facility.”
-- Public holidays: user selected “Configurable facility holiday calendar.”
-- Missing/unknown loyalty tier: user selected “No discount; use base rate.”
-- Currency rounding: user selected “Final amount to cents, half-up.”
-- GitHub publication: user selected “Defer until local plan and chat-history files are reviewed.”
+[`02-architecture.md`](./02-architecture.md) proposes a language-neutral,
+single-process modular design; describes domain objects, policy calculation,
+application use cases, time handling, storage boundaries, errors, and
+trade-offs. The resulting working operational rules are recorded for review.
 
-**User decisions:** Facility timezone is unspecified but configurable per facility; use a configurable facility holiday calendar; missing/unknown loyalty tier receives no discount; round the final amount to cents using half-up; defer public repository publication until the local files have been reviewed.
+### Stage 3 — Test plan
 
-## Current assistant response
+Created [`03-test-plan.md`](./03-test-plan.md) with focused unit, policy,
+best-fare, calendar, time-boundary, invalid-input, and parking-operation test
+scenarios. On review, the user asked for more explicit edge and negative
+coverage, specifically separate cases for exit-before-entry and equal
+entry/exit timestamps. Updated the plan with those separate rejection cases,
+and added a dedicated edge/negative matrix for validation, duration,
+pricing-window, holiday, and state-consistency boundaries. The user approved
+Stage 3 with no further feedback; the architecture plan is complete.
 
-The draft architecture and assumptions documentation was created in `architecture-plan.md` and `README.md`; the separate conversation record is this file. No implementation or GitHub publication has been performed. The user requested best-effort notification near 60% context utilization; exact utilization is not exposed to the assistant.
+## Ongoing instruction
 
-## Draft review and additional decisions
+### User
 
-**Assistant:** The first draft was ready in `architecture-plan.md`, with assumptions/trade-offs in `README.md` and the separate transcript in `ai-chat-history.md`. The assistant explained that the workspace was not a Git repository and Git was unavailable, so nothing was locally committed or published. The assistant asked the user to review the draft, choose tie behavior and clarify the Night Owl end-of-day cutoff, and authorize local Git setup/commit.
+> Save the chat history continuously in a separate `ai-chat-history.md` file.
 
-**User decisions:**
+The history will be updated at subsequent stage boundaries and when material
+clarifications or decisions are made.
 
-- Approve the draft pending the two requested pricing decisions.
-- For an exact fare tie, report all tied policies.
-- Accept Night Owl entry timestamps before the next local midnight (including sub-second timestamps after 23:59:59).
-- Authorize enabling Git and creating a local commit after review; this does not authorize GitHub publication by itself.
+## 2026-11-26 — Implementation technology and planning request
 
-**Assistant:** Updated the plan and README to report all exact-minimum tied policies and to define the Night Owl entry interval as [18:00, next local midnight). The assistant asked for a local commit identity, repository owner/name, and explicit publication confirmation.
+### User
 
-**User decisions:** Commit author name is Shyam Kolagatla. The requested repository is `smart-parking-lot`; the GitHub owner is `shyamsrk`. Use the username-based GitHub noreply address for the commit author email. The user explicitly authorized creating the repository as public and publishing the reviewed documentation.
+> Use Java 17, Maven, JUnit for the implementation choice. Let's plan the code
+> generation plan step by step based technologies.
 
-**Assistant:** Confirmed the initially supplied owner value was an email rather than a GitHub handle and requested a correction to avoid publishing under the wrong owner. The user supplied `shyamsrk` and chose a GitHub noreply commit email. The provided email address is not included in this public-facing transcript.
+The user requests a staged code-generation plan using Java 17, Maven, and
+JUnit.
 
-**Assistant:** Checked GitHub before publishing and found that `shyamsrk/smart-parking-lot` already exists as a public repository with a README and `.gitignore`. No remote files were changed.
+### User clarifications and assistant output
 
-**User decision:** Use the existing public repository and add the project documentation. The user confirmed it is theirs and authorized adding the documentation without overwriting its existing files.
+- JUnit Jupiter 5.
+- No package-name preference.
+- Include Maven Wrapper.
+- Pause for review after every implementation stage.
+- The user confirmed the proposed package root `com.smartparkinglot`.
+- The user asked to check software readiness; plan approval and whether to
+  start code generation remain pending.
 
-**Assistant:** Will preserve the existing README and `.gitignore`, integrate the local commit with the remote history, and publish only after GitHub authentication is completed.
+Created [`04-code-generation-plan.md`](./04-code-generation-plan.md). It lays
+out project setup, domain, pricing, best-fare, parking operations,
+verification, and documentation stages. Environment check: Java/Javac
+17.0.21.1, Maven 3.9.9, JUnit Jupiter 5.11.4, Maven Compiler Plugin 3.13.0,
+and Surefire 3.5.2 are available locally; Maven Central's wrapper-plugin
+metadata is reachable, but the wrapper plugin and wrapper files are not yet
+cached/generated. No dependencies were installed and no code has been
+generated. The plan is awaiting review.
 
-## Status at handoff
+The user then asked: “Give me the stage names.” The stages are:
 
-The three documentation files have been committed locally. The target public repository already existed; its README content has been retained and its `.gitignore` is being merged into the local history. The user has authorized adding the documentation. Publication is waiting for GitHub authentication. This transcript should be amended with the resulting published commit hash and repository URL after that action succeeds.
+1. **Project foundation** — Maven skeleton and wrapper.
+2. **Domain model and state** — core values, facility, spots, tickets.
+3. **Pricing policies** — hourly, Early Bird, and Night Owl.
+4. **Best-fare selection** — exhaustive evaluation, breakdown, and tie-break.
+5. **Application use cases** — in-memory entry, quote, and exit flows.
+6. **Final verification and documentation** — full Maven test run and README.
 
-## Future history updates
+No code generation had started at the time the stage names were listed; the
+plan was awaiting the user's direction.
 
-Append each subsequent user prompt, material clarification/decision, and final assistant response relevant to this deliverable. Do not put this transcript in `README.md`.
+The user clarified: “Ask for confirmation after each stage.” Updated
+[`04-code-generation-plan.md`](./04-code-generation-plan.md) to require an
+explicit confirmation before proceeding from each implementation stage,
+including repeating the confirmation gate if revisions are requested. Added
+stage-specific test/check criteria and confirmation checkpoints. No
+implementation had started at that point.
+
+The user approved beginning Stage A. The existing Maven skeleton and smoke
+test were inspected and verified without replacing them. Confirmed Java 17,
+JUnit Jupiter 5.11.4, Wrapper 3.3.4 configured for Maven 3.9.9, and both
+platform entry-point scripts. Ran `./mvnw test`: 1 test passed, 0 failures,
+0 errors. Stage A completed; the user confirmed proceeding to Stage B.
+
+Stage B added the domain model and focused tests for money rounding, vehicle
+and loyalty values, parking compatibility, facility/level/spot state, interval
+validation, and ticket lifecycle transitions. The focused run passed 15 tests;
+the full `./mvnw test` run passed 16 tests, with no failures or errors. Stage B
+completed; the user confirmed proceeding to Stage C.
+
+Stage C added policy quote/session types, Standard Hourly, Early Bird, and
+Night Owl implementations, and a configurable observed US federal holiday
+calendar. Focused pricing tests passed 12 tests; the full `./mvnw test` run
+passed 28 tests, with no failures or errors. Test coverage includes exact
+hourly block boundaries, floating peak overlaps, holiday and weekday
+eligibility, loyalty and vehicle adjustments, and elapsed-time behavior across
+both daylight-saving transitions. Stage C is complete; Stage D awaits the
+user's confirmation.
+
+The user confirmed proceeding to Stage D. Best-fare calculation now evaluates
+all policies, reports each policy outcome, selects the lowest valid fare, and
+applies the Early Bird > Night Owl > Standard Hourly tie order. It also
+excludes specials for stays over 24 hours. Focused best-fare tests passed 5
+tests; the full `./mvnw test` run passed 33 tests, with no failures or errors.
+Stage D completed; the user confirmed proceeding to Stage E.
+
+Stage E added in-memory ticket storage and entry, quote, and exit-completion
+use cases. Tests cover first-compatible allocation, full-lot behavior,
+read-only quoting, successful ticket/spot release, unknown/closed tickets,
+invalid and missing timestamps, and state consistency after failures. Focused
+application tests passed 7 tests; the full `./mvnw test` run passed 40 tests,
+with no failures or errors. Stage E is complete; Stage F awaits the user's
+confirmation.
+
+The user confirmed proceeding to Stage F and authorized recreating the
+worktree-deleted `README.md`. The README now documents setup, test/package
+commands, packages, operating rules, and in-memory limitations. Final clean
+verification used Amazon Corretto Java 17.0.21.1 and Maven Wrapper 3.3.4
+configured for Maven 3.9.9. `./mvnw clean test` passed all 40 tests with no
+failures or errors. All planned implementation stages are complete.
+
+## Implementation publication
+
+The user then requested publication to GitHub. GitHub CLI device authentication
+succeeded for the `shyamsrk` account. The implementation passed `./mvnw test`
+with 40 tests, 0 failures, and 0 errors. The implementation and project files
+are being committed on `main` and pushed to the existing public
+`shyamsrk/smart-parking-lot` repository, while preserving the existing README
+baseline and `.gitignore`.
