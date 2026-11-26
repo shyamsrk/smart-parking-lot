@@ -129,7 +129,7 @@ The draft architecture and assumptions documentation was created in `architectur
 
 ## Status at handoff
 
-The three documentation files have been committed locally. The target public repository already existed; its existing files have not been overwritten or modified. The user has authorized adding the documentation. Publication is waiting for GitHub authentication. This transcript should be amended with the resulting published commit hash and repository URL after that action succeeds.
+The three documentation files have been committed locally. The target public repository already existed; its README content has been retained and its `.gitignore` is being merged into the local history. The user has authorized adding the documentation. Publication is waiting for GitHub authentication. This transcript should be amended with the resulting published commit hash and repository URL after that action succeeds.
 
 ## Future history updates
 
